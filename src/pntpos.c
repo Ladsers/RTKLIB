@@ -56,11 +56,12 @@ static double gettgd(int sat, const nav_t *nav)
 }
 /* psendorange with code bias correction -------------------------------------*/
 static double prange(const obsd_t *obs, const nav_t *nav, const double *azel,
-                     int iter, const prcopt_t *opt, double *var)
+					 int iter, const prcopt_t *opt, double *var, FILE *f)
 {
-    const double *lam=nav->lam[obs->sat-1];
+	//FILE *f = fopen("outputPR.prange", "a");
+	const double *lam=nav->lam[obs->sat-1];
     double PC,P1,P2,P1_P2,P1_C1,P2_C2,gamma;
-    int i=0,j=1,sys;
+	int i=0,j=1,sys;
     
     *var=0.0;
     
@@ -83,7 +84,7 @@ static double prange(const obsd_t *obs, const nav_t *nav, const double *azel,
         }
     }
     gamma=SQR(lam[j])/SQR(lam[i]); /* f1^2/f2^2 */
-    P1=obs->P[i];
+	P1=obs->P[i];
     P2=obs->P[j];
     P1_P2=nav->cbias[obs->sat-1][0];
     P1_C1=nav->cbias[obs->sat-1][1];
@@ -98,7 +99,7 @@ static double prange(const obsd_t *obs, const nav_t *nav, const double *azel,
         if (P1==0.0||P2==0.0) return 0.0;
         if (obs->code[i]==CODE_L1C) P1+=P1_C1; /* C1->P1 */
         if (obs->code[j]==CODE_L2C) P2+=P2_C2; /* C2->P2 */
-        
+
         /* iono-free combination */
         PC=(gamma*P1-P2)/(gamma-1.0);
     }
@@ -111,7 +112,11 @@ static double prange(const obsd_t *obs, const nav_t *nav, const double *azel,
     if (opt->sateph==EPHOPT_SBAS) PC-=P1_C1; /* sbas clock based C1 */
     
     *var=SQR(ERR_CBIAS);
-    
+
+	fprintf(f, "%f\t", obs->P[i]);
+	fprintf(f, "%f\n", PC);
+	//fclose(f);
+
     return PC;
 }
 /* ionospheric correction ------------------------------------------------------
@@ -202,16 +207,17 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
                    double *v, double *H, double *var, double *azel, int *vsat,
                    double *resp, int *ns)
 {
-    double r,dion,dtrp,vmeas,vion,vtrp,rr[3],pos[3],dtr,e[3],P,lam_L1;
+	FILE *f = fopen("outputPR.prange", "a");
+	double r,dion,dtrp,vmeas,vion,vtrp,rr[3],pos[3],dtr,e[3],P,lam_L1;
     int i,j,nv=0,sys,mask[4]={0};
     
     trace(3,"resprng : n=%d\n",n);
     
-    for (i=0;i<3;i++) rr[i]=x[i]; dtr=x[3];
+	for (i=0;i<3;i++) rr[i]=x[i]; dtr=x[3];
     
-    ecef2pos(rr,pos);
-    
-    for (i=*ns=0;i<n&&i<MAXOBS;i++) {
+	ecef2pos(rr,pos);
+	//fprintf(f, "%d\n", ns);
+	for (i=*ns=0;i<n&&i<MAXOBS;i++) {
         vsat[i]=0; azel[i*2]=azel[1+i*2]=resp[i]=0.0;
         
         if (!(sys=satsys(obs[i].sat,NULL))) continue;
@@ -219,19 +225,26 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
         /* reject duplicated observation data */
         if (i<n-1&&i<MAXOBS-1&&obs[i].sat==obs[i+1].sat) {
             trace(2,"duplicated observation data %s sat=%2d\n",
-                  time_str(obs[i].time,3),obs[i].sat);
-            i++;
+				  time_str(obs[i].time,3),obs[i].sat);
+			i++;
             continue;
         }
         /* geometric distance/azimuth/elevation angle */
         if ((r=geodist(rs+i*6,rr,e))<=0.0||
             satazel(pos,e,azel+i*2)<opt->elmin) continue;
-        
+
+        fprintf(f, "%s\t", time_str(obs[i].time,0));
+		fprintf(f, "%2d\t", obs[i].sat);
+		fprintf(f, "%02X\t", svh[i]);
+
         /* psudorange with code bias correction */
-        if ((P=prange(obs+i,nav,azel+i*2,iter,opt,&vmeas))==0.0) continue;
-        
+		if ((P=prange(obs+i,nav,azel+i*2,iter,opt,&vmeas,f))==0.0) continue;
+
+		//fprintf(f, "%f\t", obs[i].P);
+		//fprintf(f, "%f\n", P);
+
         /* excluded satellite? */
-        if (satexclude(obs[i].sat,svh[i],opt)) continue;
+		if (satexclude(obs[i].sat,svh[i],opt)) continue;
         
         /* ionospheric corrections */
         if (!ionocorr(obs[i].time,nav,obs[i].sat,pos,azel+i*2,
@@ -264,16 +277,17 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
         var[nv++]=varerr(opt,azel[1+i*2],sys)+vare[i]+vmeas+vion+vtrp;
         
         trace(4,"sat=%2d azel=%5.1f %4.1f res=%7.3f sig=%5.3f\n",obs[i].sat,
-              azel[i*2]*R2D,azel[1+i*2]*R2D,resp[i],sqrt(var[nv-1]));
-    }
+			  azel[i*2]*R2D,azel[1+i*2]*R2D,resp[i],sqrt(var[nv-1]));
+	}
     /* constraint to avoid rank-deficient */
     for (i=0;i<4;i++) {
         if (mask[i]) continue;
         v[nv]=0.0;
         for (j=0;j<NX;j++) H[j+nv*NX]=j==i+3?1.0:0.0;
         var[nv++]=0.01;
-    }
-    return nv;
+	}
+	fclose(f);
+	return nv;
 }
 /* validate solution ---------------------------------------------------------*/
 static int valsol(const double *azel, const int *vsat, int n,
@@ -548,7 +562,7 @@ extern int pntpos(const obsd_t *obs, int n, const nav_t *nav,
     
     if (n<=0) {strcpy(msg,"no observation data"); return 0;}
     
-    trace(3,"pntpos  : tobs=%s n=%d\n",time_str(obs[0].time,3),n);
+	trace(3,"pntpos  : tobs=%s n=%d\n",time_str(obs[0].time,3),n);
     
     sol->time=obs[0].time; msg[0]='\0';
     
