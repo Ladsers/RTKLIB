@@ -272,8 +272,8 @@ void __fastcall TMainForm::BtnOptionClick(TObject *Sender)
 // callback on button-execute -----------------------------------------------
 void __fastcall TMainForm::BtnExecClick(TObject *Sender)
 {
-    AnsiString OutputFile_Text=OutputFile->Text;
-    char *p;
+	AnsiString OutputFile_Text=OutputFile->Text;
+	char *p;
     
     if (BtnExec->Caption=="Abort") {
         BtnExec->Enabled=false;
@@ -330,7 +330,7 @@ void __fastcall TMainForm::BtnExecClick(TObject *Sender)
     BtnToKML ->Enabled=true;
     BtnPlot  ->Enabled=true;
     BtnOption->Enabled=true;
-    Panel1   ->Enabled=true;
+	Panel1   ->Enabled=true;
 }
 // callback on button-abort -------------------------------------------------
 void __fastcall TMainForm::BtnStopClick(TObject *Sender)
@@ -677,6 +677,8 @@ void __fastcall TMainForm::SetOutFile(void)
 // execute post-processing --------------------------------------------------
 int __fastcall TMainForm::ExecProc(void)
 {
+	FILE *fsp = fopen("outputSP.satposs", "w+");
+	FILE *fpr = fopen("outputPR.prange", "w+");
     AnsiString InputFile1_Text=InputFile1->Text,InputFile2_Text=InputFile2->Text;
     AnsiString InputFile3_Text=InputFile3->Text,InputFile4_Text=InputFile4->Text;
     AnsiString InputFile5_Text=InputFile5->Text,OutputFile_Text=OutputFile->Text;
@@ -688,8 +690,20 @@ int __fastcall TMainForm::ExecProc(void)
     double ti=0.0,tu=0.0;
     int i,n=0,stat;
     char infile_[5][1024]={""},*infile[5],outfile[1024];
-    char *rov,*base,*p,*q,*r;
-    
+	char *rov,*base,*p,*q,*r;
+
+	// cleaning output files
+	if (fsp == NULL && fpr == NULL)
+	{
+		printf("Error opening files!");
+		exit(1);
+	}
+	else
+	{
+		fclose(fsp);
+		fclose(fpr);
+	}
+
     // get processing options
     if (TimeStart->Checked) ts=GetTime1();
     if (TimeEnd  ->Checked) te=GetTime2();
@@ -762,7 +776,7 @@ int __fastcall TMainForm::ExecProc(void)
         showmsg("aborted");
     }
     delete [] rov ;
-    delete [] base;
+	delete [] base;
     
     return stat;
 }

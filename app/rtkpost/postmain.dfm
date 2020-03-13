@@ -213,7 +213,6 @@ object MainForm: TMainForm
         Max = 32000
         TabOrder = 4
         Wrap = True
-        OnChangingEx = TimeH1UDChangingEx
       end
       object TimeY2: TEdit
         Left = 164
@@ -231,7 +230,6 @@ object MainForm: TMainForm
         Min = -32000
         Max = 32000
         TabOrder = 7
-        OnChangingEx = TimeY2UDChangingEx
       end
       object TimeH2: TEdit
         Left = 246
@@ -250,7 +248,6 @@ object MainForm: TMainForm
         Max = 32000
         TabOrder = 9
         Wrap = True
-        OnChangingEx = TimeH2UDChangingEx
       end
       object TimeIntF: TCheckBox
         Left = 324
@@ -287,7 +284,6 @@ object MainForm: TMainForm
         Max = 32000
         TabOrder = 2
         Wrap = True
-        OnChangingEx = TimeY1UDChangingEx
       end
       object TimeInt: TComboBox
         Left = 324

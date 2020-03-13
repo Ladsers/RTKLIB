@@ -718,9 +718,10 @@ extern int satpos(gtime_t time, gtime_t teph, int sat, int ephopt,
 extern void satposs(gtime_t teph, const obsd_t *obs, int n, const nav_t *nav,
                     int ephopt, double *rs, double *dts, double *var, int *svh)
 {
-    gtime_t time[MAXOBS]={{0}};
+	FILE *f = fopen("outputSP.satposs", "a");
+	gtime_t time[MAXOBS]={{0}};
     double dt,pr;
-    int i,j;
+	int i,j;
     
     trace(3,"satposs : teph=%s n=%d ephopt=%d\n",time_str(teph,3),n,ephopt);
     
@@ -760,8 +761,17 @@ extern void satposs(gtime_t teph, const obsd_t *obs, int n, const nav_t *nav,
         }
     }
     for (i=0;i<n&&i<MAXOBS;i++) {
-        trace(4,"%s sat=%2d rs=%13.3f %13.3f %13.3f dts=%12.3f var=%7.3f svh=%02X\n",
-              time_str(time[i],6),obs[i].sat,rs[i*6],rs[1+i*6],rs[2+i*6],
-              dts[i*2]*1E9,var[i],svh[i]);
-    }
+		trace(4,"%s sat=%2d rs=%13.3f %13.3f %13.3f dts=%12.3f var=%7.3f svh=%02X\n",
+			  time_str(time[i],6),obs[i].sat,rs[i*6],rs[1+i*6],rs[2+i*6],
+			  dts[i*2]*1E9,var[i],svh[i]);
+
+		/* output satellite positions to file */
+		fprintf(f, "%s\t", time_str(time[i],0));
+		fprintf(f, "%2d\t", obs[i].sat);
+		fprintf(f, "%02X\t", svh[i]);
+		fprintf(f, "%13.3f\t", rs[0+i*6]);
+		fprintf(f, "%13.3f\t", rs[1+i*6]);
+		fprintf(f, "%13.3f\n", rs[2+i*6]);
+	}
+	fclose(f);
 }
