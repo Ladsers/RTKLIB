@@ -113,8 +113,8 @@ static double prange(const obsd_t *obs, const nav_t *nav, const double *azel,
     
     *var=SQR(ERR_CBIAS);
 
-	fprintf(f, "%f\t", obs->P[i]);
-	fprintf(f, "%f\n", PC);
+	fprintf(f, "%.3f\t", obs->P[i]);
+	fprintf(f, "%.3f\n", PC);
 	//fclose(f);
 
     return PC;
@@ -234,8 +234,8 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
             satazel(pos,e,azel+i*2)<opt->elmin) continue;
 
         fprintf(f, "%s\t", time_str(obs[i].time,0));
-		fprintf(f, "%2d\t", obs[i].sat);
-		fprintf(f, "%02X\t", svh[i]);
+		fprintf(f, "%02d\t", obs[i].sat);
+		//fprintf(f, "%02X\t", svh[i]);
 
         /* psudorange with code bias correction */
 		if ((P=prange(obs+i,nav,azel+i*2,iter,opt,&vmeas,f))==0.0) continue;

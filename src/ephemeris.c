@@ -767,7 +767,7 @@ extern void satposs(gtime_t teph, const obsd_t *obs, int n, const nav_t *nav,
 
 		/* output satellite positions to file */
 		fprintf(f, "%s\t", time_str(time[i],0));
-		fprintf(f, "%2d\t", obs[i].sat);
+		fprintf(f, "%02d\t", obs[i].sat);
 		fprintf(f, "%02X\t", svh[i]);
 		fprintf(f, "%13.3f\t", rs[0+i*6]);
 		fprintf(f, "%13.3f\t", rs[1+i*6]);
