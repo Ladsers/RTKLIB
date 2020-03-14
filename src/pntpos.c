@@ -211,7 +211,7 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
 	double r,dion,dtrp,vmeas,vion,vtrp,rr[3],pos[3],dtr,e[3],P,lam_L1;
     int i,j,nv=0,sys,mask[4]={0};
     
-    trace(3,"resprng : n=%d\n",n);
+	trace(3,"resprng : n=%d\n",n);
     
 	for (i=0;i<3;i++) rr[i]=x[i]; dtr=x[3];
     
@@ -220,18 +220,18 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
 	for (i=*ns=0;i<n&&i<MAXOBS;i++) {
         vsat[i]=0; azel[i*2]=azel[1+i*2]=resp[i]=0.0;
         
-        if (!(sys=satsys(obs[i].sat,NULL))) continue;
-        
-        /* reject duplicated observation data */
-        if (i<n-1&&i<MAXOBS-1&&obs[i].sat==obs[i+1].sat) {
-            trace(2,"duplicated observation data %s sat=%2d\n",
+		if (!(sys=satsys(obs[i].sat,NULL))) continue;
+
+		/* reject duplicated observation data */
+		if (i<n-1&&i<MAXOBS-1&&obs[i].sat==obs[i+1].sat) {
+			trace(2,"duplicated observation data %s sat=%2d\n",
 				  time_str(obs[i].time,3),obs[i].sat);
 			i++;
-            continue;
-        }
-        /* geometric distance/azimuth/elevation angle */
-        if ((r=geodist(rs+i*6,rr,e))<=0.0||
-            satazel(pos,e,azel+i*2)<opt->elmin) continue;
+			continue;
+		}
+		/* geometric distance/azimuth/elevation angle */
+		if ((r=geodist(rs+i*6,rr,e))<=0.0||
+			satazel(pos,e,azel+i*2)<opt->elmin) continue;
 
         fprintf(f, "%s\t", time_str(obs[i].time,0));
 		fprintf(f, "%02d\t", obs[i].sat);
@@ -239,6 +239,11 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
 
         /* psudorange with code bias correction */
 		if ((P=prange(obs+i,nav,azel+i*2,iter,opt,&vmeas,f))==0.0) continue;
+
+		/* Warning! The next line disables the solution, however, provides a
+		pseudorange correction. */
+		continue;
+		/* !!! */
 
 		//fprintf(f, "%f\t", obs[i].P);
 		//fprintf(f, "%f\n", P);
