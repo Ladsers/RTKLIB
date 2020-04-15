@@ -771,7 +771,13 @@ extern void satposs(gtime_t teph, const obsd_t *obs, int n, const nav_t *nav,
 		fprintf(f, "%02X\t", svh[i]);
 		fprintf(f, "%13.3f\t", rs[0+i*6]);
 		fprintf(f, "%13.3f\t", rs[1+i*6]);
-		fprintf(f, "%13.3f\n", rs[2+i*6]);
+		fprintf(f, "%13.3f\t", rs[2+i*6]);
+
+		//added velocities output
+		fprintf(f, "%13.3f\t", rs[3+i*6]);
+		fprintf(f, "%13.3f\t", rs[4+i*6]);
+		fprintf(f, "%13.3f\n", rs[5+i*6]);
+
 	}
 	fclose(f);
 }
