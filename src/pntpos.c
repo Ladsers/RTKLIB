@@ -56,7 +56,7 @@ static double gettgd(int sat, const nav_t *nav)
 }
 /* psendorange with code bias correction -------------------------------------*/
 static double prange(const obsd_t *obs, const nav_t *nav, const double *azel,
-					 int iter, const prcopt_t *opt, double *var, FILE *f)
+					 int iter, const prcopt_t *opt, double *var)
 {
 	//FILE *f = fopen("outputPR.prange", "a");
 	const double *lam=nav->lam[obs->sat-1];
@@ -113,8 +113,8 @@ static double prange(const obsd_t *obs, const nav_t *nav, const double *azel,
     
     *var=SQR(ERR_CBIAS);
 
-	fprintf(f, "%.3f\t", obs->P[i]);
-	fprintf(f, "%.3f\n", PC);
+	//fprintf(f, "%.3f\t", obs->P[i]);
+	//fprintf(f, "%.3f\n", PC);
 	//fclose(f);
 
     return PC;
@@ -207,7 +207,7 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
                    double *v, double *H, double *var, double *azel, int *vsat,
                    double *resp, int *ns)
 {
-	FILE *f = fopen("outputPR.prange", "a");
+	//FILE *f = fopen("outputPR.prange", "a");
 	double r,dion,dtrp,vmeas,vion,vtrp,rr[3],pos[3],dtr,e[3],P,lam_L1;
     int i,j,nv=0,sys,mask[4]={0};
     
@@ -233,16 +233,16 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
 		if ((r=geodist(rs+i*6,rr,e))<=0.0||
 			satazel(pos,e,azel+i*2)<opt->elmin) continue;
 
-        fprintf(f, "%s\t", time_str(obs[i].time,0));
-		fprintf(f, "%02d\t", obs[i].sat);
+		//fprintf(f, "%s\t", time_str(obs[i].time,0));
+		//fprintf(f, "%02d\t", obs[i].sat);
 		//fprintf(f, "%02X\t", svh[i]);
 
-        /* psudorange with code bias correction */
-		if ((P=prange(obs+i,nav,azel+i*2,iter,opt,&vmeas,f))==0.0) continue;
+		/* psudorange with code bias correction */
+		if ((P=prange(obs+i,nav,azel+i*2,iter,opt,&vmeas))==0.0) continue;
 
 		/* Warning! The next line disables the solution, however, provides a
 		pseudorange correction. */
-		continue;
+		//continue;
 		/* !!! */
 
 		//fprintf(f, "%f\t", obs[i].P);
@@ -291,7 +291,7 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
         for (j=0;j<NX;j++) H[j+nv*NX]=j==i+3?1.0:0.0;
         var[nv++]=0.01;
 	}
-	fclose(f);
+	//fclose(f);
 	return nv;
 }
 /* validate solution ---------------------------------------------------------*/
